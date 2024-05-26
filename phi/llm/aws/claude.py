@@ -5,18 +5,44 @@ from phi.llm.aws.bedrock import AwsBedrock
 
 
 class Claude(AwsBedrock):
-    name: str = "AwsBedrockAnthropicClaude"
-    model: str = "anthropic.claude-3-sonnet-20240229-v1:0"
-    # -*- Request parameters
-    max_tokens: int = 8192
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
-    top_k: Optional[int] = None
-    stop_sequences: Optional[List[str]] = None
-    anthropic_version: str = "bedrock-2023-05-31"
-    request_params: Optional[Dict[str, Any]] = None
-    # -*- Client parameters
-    client_params: Optional[Dict[str, Any]] = None
+    def __init__(self,
+                 name: str = "AwsBedrockAnthropicClaude",
+                 model: str = "anthropic.claude-3-sonnet-20240229-v1:0",
+                 max_tokens: int = 8192,
+                 temperature: Optional[float] = None,
+                 top_p: Optional[float] = None,
+                 top_k: Optional[int] = None,
+                 stop_sequences: Optional[List[str]] = None,
+                 anthropic_version: str = "bedrock-2023-05-31",
+                 request_params: Optional[Dict[str, Any]] = None,
+                 client_params: Optional[Dict[str, Any]] = None):
+        self.name = name
+        self.model = model
+        self.max_tokens = max_tokens
+        self.temperature = temperature
+        self.top_p = top_p
+        self.top_k = top_k
+        self.stop_sequences = stop_sequences
+        self.anthropic_version = anthropic_version
+        self.request_params = request_params
+        self.client_params = client_params
+
+        # Validate the parameters
+        self.check_model_id()
+        self.check_hyperparameters()
+
+    def check_model_id(self):
+        ALLOWED_CLAUDE_IDS = ["anthropic.claude-3-sonnet-20240229-v1:0", "anthropic.claude-3-opus-20240229-v1:0",
+                              "anthropic.claude-3-haiku-20240307-v1:0"]
+        assert self.model in ALLOWED_CLAUDE_IDS, f"When using AWS Claude messaging API, you should choose from this list: {ALLOWED_CLAUDE_IDS}\nYou passed {self.model}"
+
+    def check_hyperparameters(self):
+        if self.temperature:
+            assert 0 <= self.temperature <= 1, "temperature must be between 0 and 1."
+        if self.top_p:
+            assert 0 <= self.top_p <= 1, "top_p must be between 0 and 1."
+        if self.top_k:
+            assert 0 <= self.top_k <= 500, "top_k must be between 0 and 500."
 
     def to_dict(self) -> Dict[str, Any]:
         _dict = super().to_dict()
